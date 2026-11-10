@@ -1,0 +1,252 @@
+<!doctype html>
+<html lang="es">
+<head>
+<title>Demo Hoja de Medidas</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+<style>
+/* Plan: hoja de medidas en cuadrícula (puntos en filas, prendas en columnas), como el papel.
+   Color: petróleo y salvia de LIVES; rojo solo para fuera de tolerancia. Tipo: Inter, cifras tabulares. */
+:root{
+  --bg:#EEF3F1; --card:#FFFFFF; --fg:#0E2A26; --mut:#5C706A; --line:#D9E3DF;
+  --pet:#0E3B36; --sal:#0F7A5A; --salsoft:#E3F2EC; --ok:#0F7A5A; --oksoft:#E3F2EC;
+  --bad:#C62828; --badsoft:#FDE8E7; --cell:#F7FAF9; --sel:#FFF6D6; --selb:#D9A400;
+  --onpet:#FFFFFF; --shadow:0 -8px 30px rgba(14,42,38,.22); --sgnb:#0E3B36; --sgnf:#FFFFFF;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0A1C19; --card:#112A25; --fg:#E3ECE9; --mut:#9DB3AD; --line:#23423B;
+  --pet:#0A1C19; --sal:#3FBF92; --salsoft:#163A32; --ok:#4CCB9E; --oksoft:#14372D;
+  --bad:#FF8A80; --badsoft:#3F1E1D; --cell:#0E2420; --sel:#3A3210; --selb:#E0B63A;
+  --onpet:#E3ECE9; --shadow:0 -8px 30px rgba(0,0,0,.5); --sgnb:#3FBF92; --sgnf:#06241C; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0A1C19; --card:#112A25; --fg:#E3ECE9; --mut:#9DB3AD; --line:#23423B;
+  --pet:#0A1C19; --sal:#3FBF92; --salsoft:#163A32; --ok:#4CCB9E; --oksoft:#14372D;
+  --bad:#FF8A80; --badsoft:#3F1E1D; --cell:#0E2420; --sel:#3A3210; --selb:#E0B63A;
+  --onpet:#E3ECE9; --shadow:0 -8px 30px rgba(0,0,0,.5); --sgnb:#3FBF92; --sgnf:#06241C; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;font-size:15px;
+  padding-block:0 24px;padding-left:max(12px,env(safe-area-inset-left,0px));padding-right:max(12px,env(safe-area-inset-right,0px));
+  font-variant-numeric:tabular-nums}
+body.abierto{padding-bottom:320px}
+td.c,.pto{scroll-margin-top:96px}
+button{font-family:inherit;cursor:pointer}
+.demo{margin:0 -12px;background:#B45309;color:#fff;text-align:center;font-size:12.5px;font-weight:600;padding:6px 12px}
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;margin:0 -12px;padding:10px 12px 8px;background:var(--pet);color:var(--onpet)}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--pet)}
+.top h1{margin:0;font-size:16px;font-weight:700}
+.top .ctx{font-size:12.5px;opacity:.85;margin-top:2px}
+.tallas{display:flex;gap:6px;overflow-x:auto;padding:10px 0 4px;scrollbar-width:none}
+.tallas::-webkit-scrollbar{display:none}
+.tallas button{flex:0 0 auto;min-width:62px;border:1.5px solid var(--line);background:var(--card);color:var(--fg);border-radius:10px;padding:7px 10px 6px;font-size:16px;font-weight:700;text-align:center;line-height:1.1}
+.tallas button i{display:block;font-style:normal;font-size:11px;font-weight:500;color:var(--mut);margin-top:2px}
+.tallas button.on{background:var(--sal);border-color:var(--sal);color:#fff}
+.tallas button.on i{color:#fff;opacity:.9}
+.hoja{background:var(--card);border:1px solid var(--line);border-radius:12px;overflow-x:auto;margin-top:8px}
+table{border-collapse:separate;border-spacing:0;width:max-content;min-width:100%}
+th,td{border-bottom:1px solid var(--line);border-right:1px solid var(--line);padding:0;text-align:center}
+th{background:var(--cell);font-size:12px;font-weight:700;color:var(--mut);padding:8px 4px;text-transform:uppercase;letter-spacing:.04em}
+tr:last-child td{border-bottom:0}
+td:last-child,th:last-child{border-right:0}
+.pto{position:sticky;left:0;z-index:2;background:var(--card);text-align:left;min-width:142px;max-width:142px;padding:7px 8px;box-shadow:1px 0 0 var(--line)}
+th.pto{background:var(--cell);z-index:3}
+.pto b{display:flex;gap:6px;align-items:baseline;font-size:13.5px;font-weight:600;line-height:1.2}
+.pto b em{font-style:normal;color:var(--sal);font-weight:700;min-width:14px}
+.pto small{display:block;margin-top:2px;font-size:12px;color:var(--mut)}
+.pto small span{color:var(--fg);font-weight:600}
+td.c{width:66px;min-width:66px;height:52px}
+td.c button{display:block;width:100%;height:100%;border:0;background:transparent;color:var(--fg);font-size:15px;font-weight:700;padding:0}
+td.c button.vacio{color:var(--mut);font-weight:400;font-size:20px}
+td.c.ok button{background:var(--oksoft);color:var(--ok)}
+td.c.mal button{background:var(--badsoft);color:var(--bad)}
+td.c.sel button{outline:3px solid var(--selb);outline-offset:-3px;background:var(--sel);color:var(--fg)}
+th.add,td.add{min-width:56px;width:56px}
+th.add button{border:0;background:transparent;color:var(--sal);font-size:20px;font-weight:700;padding:0 8px;width:100%}
+.res{margin-top:10px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px;display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center;font-size:13.5px}
+.res b{font-weight:700}
+.pill{display:inline-block;padding:2px 9px;border-radius:99px;font-size:12.5px;font-weight:700}
+.pill.ok{background:var(--oksoft);color:var(--ok)}
+.pill.mal{background:var(--badsoft);color:var(--bad)}
+.fin{display:flex;gap:8px;margin-top:10px}
+.fin button{flex:1;min-height:48px;border-radius:10px;border:1.5px solid var(--sal);font-size:15px;font-weight:700}
+.fin .ap{background:var(--sal);color:#fff}
+.fin .re{background:var(--card);color:var(--bad);border-color:var(--bad)}
+.nota{font-size:12.5px;color:var(--mut);margin:10px 2px 0;line-height:1.45}
+/* panel de captura */
+.fondo{position:fixed;inset:0;background:rgba(0,0,0,.25);z-index:20}
+.hoja-cap{position:fixed;left:0;right:0;bottom:0;z-index:30;background:var(--card);border-radius:16px 16px 0 0;box-shadow:var(--shadow);
+  padding:12px max(14px,env(safe-area-inset-left,0px)) calc(14px + env(safe-area-inset-bottom,0px)) max(14px,env(safe-area-inset-right,0px));max-height:62vh;overflow-y:auto}
+.cab{display:flex;align-items:center;gap:8px}
+.cab .t{flex:1;min-width:0}
+.cab .t b{display:block;font-size:15px;font-weight:700}
+.cab .t span{font-size:12.5px;color:var(--mut)}
+.cab button{border:1px solid var(--line);background:var(--cell);color:var(--fg);border-radius:9px;min-width:44px;min-height:44px;font-size:18px;font-weight:700}
+.sgn{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
+.sgn button{min-height:44px;border-radius:10px;border:1.5px solid var(--line);background:var(--cell);color:var(--fg);font-size:17px;font-weight:700}
+.sgn button.on{background:var(--sgnb);border-color:var(--sgnb);color:var(--sgnf)}
+.frs{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-top:8px}
+.frs button{min-height:46px;border-radius:10px;border:1.5px solid var(--line);background:var(--cell);color:var(--fg);font-size:17px;font-weight:700}
+.frs button.ex{grid-column:span 3;background:var(--salsoft);border-color:var(--sal);color:var(--ok)}
+.frs button.ent.on{background:var(--selb);color:#222;border-color:var(--selb)}
+.frs button:active,.sgn button:active{transform:scale(.97)}
+.pie{display:flex;gap:8px;margin-top:8px}
+.pie button{flex:1;min-height:44px;border-radius:10px;border:1px solid var(--line);background:var(--cell);color:var(--mut);font-size:14px;font-weight:600}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(20px + env(safe-area-inset-bottom,0px));background:var(--sgnb);color:var(--sgnf);padding:10px 16px;border-radius:10px;font-size:14px;font-weight:600;z-index:40;max-width:90%;text-align:center}
+@media (prefers-reduced-motion:no-preference){.hoja-cap{animation:sube .15s ease-out}@keyframes sube{from{transform:translateY(40px);opacity:.6}to{transform:none;opacity:1}}}
+</style>
+
+<style>html{color-scheme:light}:root{padding-top:env(safe-area-inset-top,0px)}body{margin:0}[hidden]{display:none!important}</style>
+</head>
+<body>
+<div class="demo">DEMOSTRACIÓN · datos de ejemplo · nada se guarda</div>
+<div class="top">
+  <h1>Control de medidas</h1>
+  <div class="ctx">Polo ejemplo EJ-100 · Prenda terminada · Taller de ejemplo · Pulgadas</div>
+</div>
+
+<div class="tallas" id="tallas"></div>
+<div class="hoja"><table id="tabla"></table></div>
+<div class="res" id="res"></div>
+<div class="fin">
+  <button class="re" id="btnRe" type="button">Rechazar y guardar</button>
+  <button class="ap" id="btnAp" type="button">Aprobar y guardar</button>
+</div>
+<p class="nota">Cómo se usa: toca el cuadro de un punto y una prenda, elige + o −, y toca la fracción. Se anota solo y pasa al punto siguiente. Rojo = fuera de tolerancia. Como en la hoja de papel: una columna por prenda.</p>
+
+<div id="capa"></div>
+<div id="toast" class="toast" hidden></div>
+
+<script>
+(function(){
+var TALLAS=['XS','S','M','L','XL'];
+/* [código, nombre, [ficha por talla en pulgadas], tolerancia] */
+var PUNTOS=[
+ ['A','Largo total (desde hombro)',[26,27,28,29,30],0.5],
+ ['B','Ancho pecho (1" bajo sisa)',[18,19,20.5,22,23.5],0.5],
+ ['C','Ancho cintura',[17,18,19.5,21,22.5],0.5],
+ ['D','Ancho cadera',[18.5,19.5,21,22.5,24],0.5],
+ ['E','Ancho de hombro',[14.5,15,15.75,16.5,17.25],0.25],
+ ['F','Largo de manga',[7,7.25,7.5,7.75,8],0.25],
+ ['G','Ancho de bíceps',[6.5,6.75,7.25,7.75,8.25],0.25],
+ ['H','Ancho de puño',[5.5,5.75,6,6.25,6.5],0.25],
+ ['I','Abertura de cuello',[7.25,7.5,7.75,8,8.25],0.25],
+ ['J','Caída escote delantero',[3.5,3.5,3.75,4,4],0.25]
+];
+var FR=[1/16,1/8,3/16,1/4,5/16,3/8,1/2,5/8,3/4,7/8];
+var FRT=['1/16','1/8','3/16','1/4','5/16','3/8','1/2','5/8','3/4','7/8'];
+var PRENDAS={XS:2,S:2,M:3,L:2,XL:2};
+var DATOS={}; /* clave talla|prenda|punto -> diferencia en pulgadas */
+var TACT='M', SEL=null, SIGNO=1, ENTERO=0;
+var $=function(i){return document.getElementById(i);};
+function k(t,p,i){return t+'|'+p+'|'+i;}
+function fmt(x){ /* 20.5 -> 20 1/2 */
+  var s=Math.round(x*16), e=Math.floor(s/16), n=s%16, d=16;
+  while(n&&n%2===0){n/=2;d/=2;}
+  if(!n) return String(e);
+  return (e?e+' ':'')+n+'/'+d;
+}
+function fmtDif(d){
+  if(Math.abs(d)<1e-9) return '=';
+  return (d>0?'+':'−')+fmt(Math.abs(d));
+}
+/* datos de ejemplo ya anotados, para ver cómo queda a mitad de trabajo */
+(function(){
+  var m1=[0,0.25,-0.125,0,0.125,0,-0.25,0.125,0,0.75];
+  m1.forEach(function(v,i){DATOS[k('M',1,i)]=v;});
+  var m2=[0.125,-0.5,0,0.25];
+  m2.forEach(function(v,i){DATOS[k('M',2,i)]=v;});
+  [0,-0.125,0.25].forEach(function(v,i){DATOS[k('S',1,i)]=v;});
+})();
+function ok(t,p,i){var d=DATOS[k(t,p,i)]; return d!==undefined && Math.abs(d)<=PUNTOS[i][3]+1e-9;}
+function hechos(t,p){var n=0; PUNTOS.forEach(function(_,i){if(DATOS[k(t,p,i)]!==undefined)n++;}); return n;}
+function fuera(t,p){var n=0; PUNTOS.forEach(function(_,i){var d=DATOS[k(t,p,i)]; if(d!==undefined && !ok(t,p,i))n++;}); return n;}
+function tot(t){var n=0; for(var p=1;p<=PRENDAS[t];p++) n+=hechos(t,p); return n;}
+
+function pintarTallas(){
+  $('tallas').innerHTML=TALLAS.map(function(t){
+    var n=tot(t), T=PUNTOS.length*PRENDAS[t];
+    return '<button type="button" data-t="'+t+'" class="'+(t===TACT?'on':'')+'">'+t+'<i>'+(n?n+' de '+T:'sin medir')+'</i></button>';
+  }).join('');
+  [].forEach.call($('tallas').querySelectorAll('button'),function(b){
+    b.onclick=function(){TACT=b.dataset.t; cerrar(); pintar();};
+  });
+}
+function pintarTabla(){
+  var ti=TALLAS.indexOf(TACT), h='<thead><tr><th class="pto">Punto · Ficha ± tol.</th>';
+  for(var p=1;p<=PRENDAS[TACT];p++) h+='<th>Prenda '+p+'</th>';
+  h+='<th class="add"><button type="button" id="mas" aria-label="Agregar prenda">+</button></th></tr></thead><tbody>';
+  PUNTOS.forEach(function(pt,i){
+    h+='<tr><td class="pto"><b><em>'+pt[0]+'</em>'+pt[1]+'</b><small><span>'+fmt(pt[2][ti])+'</span> ± '+fmt(pt[3])+'</small></td>';
+    for(var p=1;p<=PRENDAS[TACT];p++){
+      var d=DATOS[k(TACT,p,i)], cls='c';
+      if(d!==undefined) cls+=ok(TACT,p,i)?' ok':' mal';
+      if(SEL && SEL.p===p && SEL.i===i) cls+=' sel';
+      h+='<td class="'+cls+'" id="c_'+p+'_'+i+'"><button type="button" data-p="'+p+'" data-i="'+i+'" class="'+(d===undefined?'vacio':'')+'">'+(d===undefined?'·':fmtDif(d))+'</button></td>';
+    }
+    h+='<td class="add"></td></tr>';
+  });
+  h+='</tbody>';
+  $('tabla').innerHTML=h;
+  [].forEach.call($('tabla').querySelectorAll('td.c button'),function(b){
+    b.onclick=function(){abrir(+b.dataset.p,+b.dataset.i);};
+  });
+  $('mas').onclick=function(){ if(PRENDAS[TACT]<20) PRENDAS[TACT]++; pintar(); var hj=document.querySelector('.hoja'); hj.scrollLeft=hj.scrollWidth; };
+}
+function pintarRes(){
+  var h='';
+  for(var p=1;p<=PRENDAS[TACT];p++){
+    var n=hechos(TACT,p), f=fuera(TACT,p);
+    h+='<span><b>Prenda '+p+':</b> '+n+' de '+PUNTOS.length+' '+(f?'<span class="pill mal">'+f+' fuera</span>':(n?'<span class="pill ok">en tolerancia</span>':''))+'</span>';
+  }
+  $('res').innerHTML=h;
+}
+function pintar(){pintarTallas(); pintarTabla(); pintarRes();}
+
+/* ---------- panel de captura ---------- */
+function abrir(p,i){
+  SEL={p:p,i:i}; ENTERO=0;
+  var d=DATOS[k(TACT,p,i)]; if(d!==undefined && d!==0) SIGNO=d<0?-1:1;
+  document.body.classList.add('abierto');
+  pintarTabla();
+  var el=$('c_'+p+'_'+i); if(el) el.scrollIntoView({block:'start',inline:'nearest',behavior:'smooth'});
+  panel();
+}
+function panel(){
+  var ti=TALLAS.indexOf(TACT), pt=PUNTOS[SEL.i], esp=pt[2][ti], d=DATOS[k(TACT,SEL.p,SEL.i)];
+  var h='<div class="fondo" id="fondo"></div><div class="hoja-cap" role="dialog" aria-label="Anotar medida">'+
+   '<div class="cab"><button type="button" id="ant" aria-label="Punto anterior">‹</button>'+
+   '<div class="t"><b>'+pt[0]+' · '+pt[1]+'</b><span>Talla '+TACT+' · Prenda '+SEL.p+' · Ficha '+fmt(esp)+' ± '+fmt(pt[3])+'</span></div>'+
+   '<button type="button" id="sig" aria-label="Punto siguiente">›</button><button type="button" id="x" aria-label="Cerrar">✕</button></div>'+
+   '<div class="sgn"><button type="button" id="sm" class="'+(SIGNO===1?'on':'')+'">+ más grande</button><button type="button" id="sl" class="'+(SIGNO===-1?'on':'')+'">− más chica</button></div>'+
+   '<div class="frs"><button type="button" class="ex" id="ex">= Exacto</button><button type="button" class="ent'+(ENTERO?' on':'')+'" id="ent">+1"</button><button type="button" id="bor" style="color:var(--mut);font-size:14px">Borrar</button>'+
+   FRT.map(function(t,j){return '<button type="button" data-j="'+j+'">'+t+'</button>';}).join('')+'</div>'+
+   '<div class="pie"><div id="pv" style="flex:1;align-self:center;font-size:13.5px;color:var(--mut)">'+(d!==undefined?'Anotado: <b style="color:var(--fg)">'+fmtDif(d)+'</b>':'Toca una fracción: se anota y pasa al siguiente punto')+'</div></div></div>';
+  $('capa').innerHTML=h;
+  $('fondo').onclick=cerrar; $('x').onclick=cerrar;
+  $('sm').onclick=function(){SIGNO=1; panel();}; $('sl').onclick=function(){SIGNO=-1; panel();};
+  $('ent').onclick=function(){ENTERO=ENTERO?0:1; panel();};
+  $('ex').onclick=function(){poner(0);};
+  $('bor').onclick=function(){delete DATOS[k(TACT,SEL.p,SEL.i)]; pintar(); panel();};
+  $('ant').onclick=function(){ir(-1);}; $('sig').onclick=function(){ir(1);};
+  [].forEach.call(document.querySelectorAll('.frs button[data-j]'),function(b){
+    b.onclick=function(){poner(SIGNO*(FR[+b.dataset.j]+ENTERO));};
+  });
+}
+function ir(n){var i=SEL.i+n; if(i<0||i>=PUNTOS.length) return; abrir(SEL.p,i);}
+function poner(v){
+  DATOS[k(TACT,SEL.p,SEL.i)]=v;
+  var p=SEL.p,i=SEL.i;
+  if(i<PUNTOS.length-1){ pintarTallas(); pintarRes(); abrir(p,i+1); }
+  else { cerrar(); pintar(); aviso('Prenda '+p+' completa'); }
+}
+function cerrar(){SEL=null; $('capa').innerHTML=''; document.body.classList.remove('abierto'); pintarTabla();}
+var tt=null;
+function aviso(s){var t=$('toast'); t.textContent=s; t.hidden=false; clearTimeout(tt); tt=setTimeout(function(){t.hidden=true;},2400);}
+$('btnAp').onclick=function(){aviso('En la demostración no se guarda nada');};
+$('btnRe').onclick=function(){aviso('En la demostración no se guarda nada');};
+pintar();
+})();
+</script>
+</body>
+</html>
