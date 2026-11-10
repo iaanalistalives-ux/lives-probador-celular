@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Probador de celular LIVES</title>
+<link rel="icon" href="icons/favicon.ico">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="theme-color" content="#0B2B26">
+<style>
+:root{--ver:#0F7A5A;--bg:#E9EFED;--card:#fff;--tx:#12302B;--bd:#C9D6D2}
+@media (prefers-color-scheme:dark){:root{--bg:#0A1C19;--card:#112A25;--tx:#E3ECE9;--bd:#24433C}}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;font:14px system-ui,Segoe UI,Arial,sans-serif;background:var(--bg);color:var(--tx);overflow:auto}
+.app{display:grid;grid-template-columns:200px 1fr 200px;gap:12px;min-height:100%;padding:12px;align-items:start}
+aside{position:sticky;top:12px;display:flex;flex-direction:column;gap:8px;background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:12px}
+aside h3{margin:0 0 2px;font-size:12px;text-transform:uppercase;letter-spacing:.05em;opacity:.65}
+aside input[type=text],aside select,aside button{width:100%;padding:9px 10px;border:1px solid var(--bd);border-radius:8px;background:transparent;color:var(--tx);font:inherit}
+aside button{cursor:pointer;text-align:left}
+aside button:hover{border-color:var(--ver)}
+aside button.main{background:var(--ver);color:#fff;border-color:var(--ver);text-align:center}
+.dim{opacity:.7;font-size:12px}
+.stage{display:flex;flex-wrap:wrap;gap:24px;justify-content:center;align-items:flex-start}
+.dev{display:flex;flex-direction:column;align-items:center;gap:6px}
+.frame{background:#111;border-radius:38px;padding:14px 10px;box-shadow:0 10px 30px rgba(0,0,0,.35);position:relative}
+.frame::before{content:"";position:absolute;top:6px;left:50%;transform:translateX(-50%);width:70px;height:5px;border-radius:3px;background:#333}
+.screen{background:#fff;border-radius:24px;overflow:hidden}
+iframe{border:0;display:block;background:#fff;transform-origin:top left}
+@media (max-width:760px){.app{grid-template-columns:1fr}aside{position:static}}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside>
+    <h3>Pantalla</h3>
+    <input type="text" id="url" placeholder="Pega el link (https://...)">
+    <button class="main" id="go">Cargar</button>
+    <button id="rel">↻ Recargar</button>
+    <h3 style="margin-top:8px">Modelo</h3>
+    <select id="disp"></select>
+    <div class="dim" id="info"></div>
+  </aside>
+  <div class="stage" id="stage"></div>
+  <aside>
+    <h3>Vista</h3>
+    <button id="rot">⟲ Girar</button>
+    <select id="zoom">
+      <option value="fit">Zoom: ajustar</option>
+      <option value="1">Zoom 100%</option>
+      <option value="0.85">Zoom 85%</option>
+      <option value="0.7">Zoom 70%</option>
+      <option value="0.5">Zoom 50%</option>
+    </select>
+    <button id="two">＋ Comparar 2</button>
+    <div class="dim" style="margin-top:8px">Si una página queda en blanco, ese sitio no permite verse aquí: ábrela en Chrome con F12 y Ctrl+Shift+M.</div>
+  </aside>
+</div>
+<script>
+var DEV=[["Android chico · 360×800",360,800],["iPhone 14 · 390×844",390,844],["Android grande · 412×915",412,915],["iPhone SE · 375×667",375,667],["Tablet · 768×1024",768,1024]];
+var $=function(i){return document.getElementById(i)};
+var disp=$("disp"),state={rot:false,two:false};
+DEV.forEach(function(d,i){var o=document.createElement("option");o.value=i;o.textContent=d[0];disp.appendChild(o)});
+disp.value=1;
+try{var s=localStorage.getItem("pc_url");if(s)$("url").value=s}catch(e){}
+function zoomFor(d){
+  var v=$("zoom").value;if(v!=="fit")return parseFloat(v);
+  var h=(state.rot?d[1]:d[2])+30, w=(state.rot?d[2]:d[1])+20;
+  var availH=window.innerHeight-60-22, availW=window.innerWidth-424-(state.two?0:0);
+  if(window.innerWidth<=760)availW=window.innerWidth-40;
+  var n=state.two?2:1;
+  return Math.max(.3,Math.min(1,availH/h,(availW/n-12)/w));
+}
+function mk(d,url){
+  var z=zoomFor(d),w=state.rot?d[2]:d[1],h=state.rot?d[1]:d[2];
+  var dev=document.createElement("div");dev.className="dev";
+  var fr=document.createElement("div");fr.className="frame";
+  var sc=document.createElement("div");sc.className="screen";
+  sc.style.width=(w*z)+"px";sc.style.height=(h*z)+"px";
+  var f=document.createElement("iframe");f.style.width=w+"px";f.style.height=h+"px";
+  f.style.transform="scale("+z+")";
+  if(url)f.src=url;
+  sc.appendChild(f);fr.appendChild(sc);dev.appendChild(fr);
+  var c=document.createElement("div");c.className="dim";c.textContent=w+" × "+h+" px · "+Math.round(z*100)+"%";dev.appendChild(c);
+  return dev;
+}
+function render(){
+  var st=$("stage");st.innerHTML="";
+  var url=$("url").value.trim();
+  st.appendChild(mk(DEV[disp.value],url));
+  if(state.two)st.appendChild(mk(DEV[(+disp.value+1)%DEV.length],url));
+  $("info").textContent=DEV[disp.value][0];
+}
+$("go").onclick=function(){try{localStorage.setItem("pc_url",$("url").value)}catch(e){}render()};
+$("url").onkeydown=function(e){if(e.key==="Enter")$("go").click()};
+$("rot").onclick=function(){state.rot=!state.rot;render()};
+$("two").onclick=function(){state.two=!state.two;$("two").textContent=state.two?"− Quitar 2.º":"＋ Comparar 2";render()};
+$("rel").onclick=render;
+disp.onchange=render;$("zoom").onchange=render;
+if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(function(){});
+var t;window.addEventListener("resize",function(){clearTimeout(t);t=setTimeout(function(){if($("zoom").value==="fit")render()},150)});
+render();
+</script>
+</body>
+</html>
