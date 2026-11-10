@@ -25,7 +25,7 @@ aside button.main{background:var(--ver);color:#fff;border-color:var(--ver);text-
 .stage{min-width:0;display:flex;flex-wrap:wrap;gap:24px;justify-content:center;align-items:flex-start}
 .dev{display:flex;flex-direction:column;align-items:center;gap:6px}
 .frame{background:#111;border-radius:38px;padding:14px 10px;box-shadow:0 10px 30px rgba(0,0,0,.35);position:relative}
-.frame::before{content:"";position:absolute;top:6px;left:50%;transform:translateX(-50%);width:70px;height:5px;border-radius:3px;background:#333}
+.frame::before{content:"";position:absolute;top:calc(6px*var(--z,1));left:50%;transform:translateX(-50%);width:calc(70px*var(--z,1));height:calc(5px*var(--z,1));border-radius:3px;background:#333}
 .screen{background:#fff;border-radius:24px;overflow:hidden}
 iframe{border:0;display:block;background:#fff;transform-origin:top left}
 @media (max-width:760px){.app{grid-template-columns:1fr}aside{position:static}}
@@ -53,7 +53,10 @@ iframe{border:0;display:block;background:#fff;transform-origin:top left}
     <button id="rot">⟲ Girar</button>
     <select id="zoom">
       <option value="fit">Zoom: ajustar</option>
-      <option value="1">Zoom 100%</option>
+      <option value="2">Zoom 200%</option>
+      <option value="1.5">Zoom 150%</option>
+      <option value="1.25">Zoom 125%</option>
+      <option value="1">Zoom 100% (tamaño real)</option>
       <option value="0.85">Zoom 85%</option>
       <option value="0.7">Zoom 70%</option>
       <option value="0.5">Zoom 50%</option>
@@ -72,22 +75,24 @@ try{var s=localStorage.getItem("pc_url");if(s)$("url").value=s;var s2=localStora
 function dims(d){return state.rot?[d[2],d[1]]:[d[1],d[2]]}
 function zoomFor(ds){
   var v=$("zoom").value;if(v!=="fit")return parseFloat(v);
-  var n=ds.length,availH=window.innerHeight-60-22;
-  var availW=$("stage").clientWidth-20*n-24*(n-1)-8;
-  var sw=0,mh=0;ds.forEach(function(d){var m=dims(d);sw+=m[0];mh=Math.max(mh,m[1]+30)});
-  return Math.max(.3,Math.min(1,availH/mh,availW/sw));
+  var n=ds.length;
+  var availH=window.innerHeight-24-26;
+  var availW=$("stage").clientWidth-24*(n-1)-8;
+  var sw=0,mh=0;ds.forEach(function(d){var m=dims(d);sw+=m[0]+20;mh=Math.max(mh,m[1]+28)});
+  return Math.max(.3,Math.min(3,availH/mh,availW/sw));
 }
 function mk(d,url,z){
   var m=dims(d),w=m[0],h=m[1];
   var dev=document.createElement("div");dev.className="dev";
   var fr=document.createElement("div");fr.className="frame";
-  var sc=document.createElement("div");sc.className="screen";
+  fr.style.setProperty("--z",z);fr.style.padding=(14*z)+"px "+(10*z)+"px";fr.style.borderRadius=(38*z)+"px";
+  var sc=document.createElement("div");sc.className="screen";sc.style.borderRadius=(24*z)+"px";
   sc.style.width=(w*z)+"px";sc.style.height=(h*z)+"px";
   var f=document.createElement("iframe");f.style.width=w+"px";f.style.height=h+"px";
   f.style.transform="scale("+z+")";
   if(url)f.src=url;
   sc.appendChild(f);fr.appendChild(sc);dev.appendChild(fr);
-  var c=document.createElement("div");c.className="dim";c.textContent=w+" × "+h+" px · "+Math.round(z*100)+"%";dev.appendChild(c);
+  var c=document.createElement("div");c.className="dim";c.textContent=w+" × "+h+" px (celular) · vista al "+Math.round(z*100)+"%";dev.appendChild(c);
   return dev;
 }
 function render(){
@@ -106,7 +111,7 @@ $("two").onclick=function(){state.two=!state.two;$("two").textContent=state.two?
 $("rel").onclick=render;
 disp.onchange=disp2.onchange=render;$("zoom").onchange=render;
 if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(function(){});
-var t;window.addEventListener("resize",function(){clearTimeout(t);t=setTimeout(function(){if($("zoom").value==="fit")render()},150)});
+var t;window.addEventListener("resize",function(){clearTimeout(t);t=setTimeout(function(){render()},150)});
 render();
 </script>
 </body>
