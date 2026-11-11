@@ -49,6 +49,12 @@ iframe{border:0;display:block;background:#fff;transform-origin:top left}
       <h3 style="margin-top:4px">Modelo 2</h3>
       <select id="disp2"></select>
     </div>
+    <div id="p3" style="display:none;flex-direction:column;gap:8px;border-top:1px solid var(--bd);padding-top:10px;margin-top:4px">
+      <h3>Pantalla 3</h3>
+      <input type="text" id="url3" placeholder="Vacío = el mismo link">
+      <h3 style="margin-top:4px">Modelo 3</h3>
+      <select id="disp3"></select>
+    </div>
   </aside>
   <div class="stage" id="stage"></div>
   <aside>
@@ -64,17 +70,18 @@ iframe{border:0;display:block;background:#fff;transform-origin:top left}
       <option value="0.7">Zoom 70%</option>
       <option value="0.5">Zoom 50%</option>
     </select>
-    <button id="two">＋ Comparar 2</button>
+    <button id="mas">＋ Agregar pantalla</button>
+    <button id="menos" style="display:none">− Quitar pantalla</button>
     <div class="dim" style="margin-top:8px">Si una página queda en blanco, ese sitio no permite verse aquí: ábrela en Chrome con F12 y Ctrl+Shift+M.</div>
   </aside>
 </div>
 <script>
 var DEV=[["Android chico · 360×800",360,800],["iPhone 14 · 390×844",390,844],["Android grande · 412×915",412,915],["iPhone SE · 375×667",375,667],["Tablet · 768×1024",768,1024]];
 var $=function(i){return document.getElementById(i)};
-var disp=$("disp"),disp2=$("disp2"),state={rot:false,two:false};
-DEV.forEach(function(d,i){[disp,disp2].forEach(function(sel){var o=document.createElement("option");o.value=i;o.textContent=d[0];sel.appendChild(o)})});
-disp.value=1;disp2.value=2;
-try{var s=localStorage.getItem("pc_url");if(s)$("url").value=s;var s2=localStorage.getItem("pc_url2");if(s2)$("url2").value=s2}catch(e){}
+var disp=$("disp"),disp2=$("disp2"),disp3=$("disp3"),SEL=[disp,disp2,disp3],URL_=[$("url"),$("url2"),$("url3")],MAX=3,state={rot:false,n:1};
+DEV.forEach(function(d,i){SEL.forEach(function(sel){var o=document.createElement("option");o.value=i;o.textContent=d[0];sel.appendChild(o)})});
+disp.value=1;disp2.value=2;disp3.value=0;
+try{var s=localStorage.getItem("pc_url");if(s)$("url").value=s;var s2=localStorage.getItem("pc_url2");if(s2)$("url2").value=s2;var s3=localStorage.getItem("pc_url3");if(s3)$("url3").value=s3}catch(e){}
 function dims(d){return state.rot?[d[2],d[1]]:[d[1],d[2]]}
 function zoomFor(ds){
   var v=$("zoom").value;if(v!=="fit")return parseFloat(v);
@@ -100,19 +107,22 @@ function mk(d,url,z){
 }
 function render(){
   var st=$("stage");st.innerHTML="";
-  var u1=$("url").value.trim(),u2=$("url2").value.trim()||u1;
-  var ds=[DEV[disp.value]];if(state.two)ds.push(DEV[disp2.value]);
+  var u1=URL_[0].value.trim(),ds=[],i;
+  for(i=0;i<state.n;i++)ds.push(DEV[SEL[i].value]);
   var z=zoomFor(ds);
-  st.appendChild(mk(ds[0],u1,z));
-  if(state.two)st.appendChild(mk(ds[1],u2,z));
-  $("p2").style.display=state.two?"flex":"none";
+  for(i=0;i<state.n;i++)st.appendChild(mk(ds[i],i?(URL_[i].value.trim()||u1):u1,z));
+  $("p2").style.display=state.n>1?"flex":"none";
+  $("p3").style.display=state.n>2?"flex":"none";
+  $("mas").style.display=state.n<MAX?"":"none";
+  $("menos").style.display=state.n>1?"":"none";
 }
-$("go").onclick=function(){try{localStorage.setItem("pc_url",$("url").value);localStorage.setItem("pc_url2",$("url2").value)}catch(e){}render()};
-$("url").onkeydown=$("url2").onkeydown=function(e){if(e.key==="Enter")$("go").click()};
+$("go").onclick=function(){try{localStorage.setItem("pc_url",$("url").value);localStorage.setItem("pc_url2",$("url2").value);localStorage.setItem("pc_url3",$("url3").value)}catch(e){}render()};
+$("url").onkeydown=$("url2").onkeydown=$("url3").onkeydown=function(e){if(e.key==="Enter")$("go").click()};
 $("rot").onclick=function(){state.rot=!state.rot;render()};
-$("two").onclick=function(){state.two=!state.two;$("two").textContent=state.two?"− Quitar 2.º":"＋ Comparar 2";render()};
+$("mas").onclick=function(){if(state.n<MAX){state.n++;render()}};
+$("menos").onclick=function(){if(state.n>1){state.n--;render()}};
 $("rel").onclick=render;
-disp.onchange=disp2.onchange=render;$("zoom").onchange=render;
+disp.onchange=disp2.onchange=disp3.onchange=render;$("zoom").onchange=render;
 if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(function(){});
 var t;window.addEventListener("resize",function(){clearTimeout(t);t=setTimeout(function(){render()},150)});
 render();
